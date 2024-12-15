@@ -241,7 +241,7 @@ node {
 
    try {
        stage('Pre Deploy') {
-            timeout(time: 1, unit: "MINUTES") {
+            timeout(time: 10, unit: "MINUTES") {
                 def cmd = "echo pre deploy -s ${svtype} -n dev-env -f ${feature} -t ${repos} -b ${branch} -x ${expire} -k pre_deploy "
                 ssh cmd
             }

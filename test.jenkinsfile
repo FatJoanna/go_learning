@@ -169,7 +169,7 @@ node {
                     name: "name",
                     choices: ["py2", "py3", "node", "go"],
                     description: "service repos\n"
-                ),
+                )
             ]
 
             if ( repos == "node" ) {

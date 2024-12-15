@@ -160,43 +160,23 @@ def gocDefaultService = [
 'go_gossip_darwin', 'go_jinx', 'go_edison'
 ]
 
-node {
-   try {
-       stage('Preparation') {
-            input id: "input git repos name", message: "请选择 git repos",
-                parameters: [
-                    choice(
-                        name: "name",
-                        choices: ["py2", "py3", "node", "go"],
-                        description: "service repos\n"
+pipeline {
+    agent any
+    stages {
+        stage('Example') {
+            steps {
+                script {
+                    def userInput = input(
+                        id: 'userInput',
+                        message: '请选择 git repos',
+                        parameters: [
+                            choice(name: 'REPO_CHOICE', choices: ['py2', 'py3', 'node', 'go'], description: 'service repos')
+                        ]
                     )
-                ]
-       }
-   } catch (exc) {
-       println exc
-       println userInput
-       g_deploy_state = 1
-   }
-
-   try {
-       stage('Pre Deploy') {
-            timeout(time: 1, unit: "MINUTES") {
-                def cmd = "echo pre deploy "
-                ssh cmd
+                    echo "You chose: ${userInput.REPO_CHOICE}"
+                }
             }
-       }
-
-       stage('Build&&Deploy') {
-            timeout(time: 60, unit: "MINUTES") {
-                def cmd = "echo build"
-                ssh cmd
-            }
-       }
-       currentBuild.result = "SUCCESS"
-   } catch (exc) {
-       println exc
-       currentBuild.result = "FAILURE"
-   }
-
+        }
+    }
 }
 

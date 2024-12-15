@@ -160,7 +160,7 @@ def gocDefaultService = [
 'go_gossip_darwin', 'go_jinx', 'go_edison'
 ]
 
-pipeline {
+node {
    try {
        stage('Preparation') {
             repos = input id: "input git repos name", message: "请选择 git repos",

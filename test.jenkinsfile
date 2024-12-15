@@ -163,79 +163,15 @@ def gocDefaultService = [
 node {
    try {
        stage('Preparation') {
-            repos = input id: "input git repos name", message: "请选择 git repos",
-            parameters: [
-                choice(
-                    name: "name",
-                    choices: ["py2", "py3", "node", "go"],
-                    description: "service repos\n"
-                )
-            ]
-            println userInput
+            input id: "input git repos name", message: "请选择 git repos",
+                parameters: [
+                    choice(
+                        name: "name",
+                        choices: ["py2", "py3", "node", "go"],
+                        description: "service repos\n"
+                    )
+                ]
        }
-
-//             if ( repos == "node" ) {
-//                 service_list = node_map.keySet().collect().join("\n")
-//             } else {
-//                 service_list = service_map[repos]
-//             }
-//
-//             if ( repos == "go") {
-//                 // 首先获取用户输入的基本参数
-//                 userInput = input id: "input deploy params", message: "请填写部署信息",
-//                 parameters: [
-//                     string(name: "feature", defaultValue: "", description: "流量标签名称，用于流量特定转发，格式要求：仅字符和数字"),
-//                     choice(name: "name", choices: service_list, description: "service name"),
-//                     string(name: "branch", defaultValue: "", description: "分支名称(master 分支需要填写具体/完整的 commit)"),
-//                     string(name: "expire", defaultValue: "5", description: "旁路环境过期自动清除，默认5天过期，最长可设置为15天"),
-//                     choice(name: "packer", choices: packers, description: "镜像打包机器10.16.0.16、10.16.0.12，默认优先使用前者"),
-//                     booleanParam(name: 'goc', defaultValue: false, description: "是否需要收集覆盖率数据"),
-// //                     booleanParam(name: 'use_cache', defaultValue: true, description: "是否使用缓存打镜像 ")
-//                 ]
-
-                // 根据选择的服务名称动态更新 goc 的值
-//                 if (userInput.name in gocDefaultService) {
-//                     userInput.goc = true
-//                 } else {
-//                     userInput.goc = false
-//                 }
-//             } else {
-//                 userInput = input id: "input deploy params", message: "请填写部署信息",
-//                 parameters: [
-//                     string(name: "feature", defaultValue: "", description: "流量标签名称，用于流量特定转发，格式要求：仅字符和数字"),
-//                     choice(name: "name", choices: service_list, description: "service name"),
-//                     string(name: "branch", defaultValue: "", description: "分支名称(master 分支需要填写具体/完整的 commit)"),
-//                     string(name: "expire", defaultValue: "5", description: "旁路环境过期自动清除，默认5天过期，最长可设置为15天"),
-//                     choice(name: "packer", choices: packers, description: "镜像打包机器 10.16.0.16、10.16.0.12，默认优先使用前者"),
-//                 ]
-//                 userInput.goc=false
-// //                 userInput.use_cache=true
-//             }
-
-
-//             svtype = userInput.name
-//             if ( repos == "node") {
-//                 svtype = node_map[userInput.name]
-//             }
-//
-//             gocparam=""
-//             feature = userInput.feature
-//             branch = userInput.branch
-//             expire = userInput.expire
-//             packer_kvm = userInput.packer
-//             goc = userInput.goc
-//
-//             if (goc == true){
-//                 gocparam="-c ${goc}"
-//             }
-//
-//             if (branch == "" || feature == ""){
-//                 print "参数错误"
-//             }
-//        }
-//        currentBuild.description = "${repos} 服务：${svtype} \n标签：${feature} \n分支：${branch}\n过期时间：${expire}"
-
-
    } catch (exc) {
        println exc
        println userInput
@@ -253,13 +189,6 @@ node {
        stage('Build&&Deploy') {
             timeout(time: 60, unit: "MINUTES") {
                 def cmd = "echo build"
-                ssh cmd
-            }
-       }
-
-       stage('Check && Detail') {
-            timeout(time: 10, unit: "MINUTES") {
-                def cmd = "echo check "
                 ssh cmd
             }
        }

@@ -158,28 +158,28 @@ node {
    try {
        stage('Pre Deploy') {
             timeout(time: 1, unit: "MINUTES") {
-                def cmd = "echo pre deloy"
+                def cmd = "echo pre deloy, ${svtype}, ${env}, ${repos}, ${branch}"
                 sh cmd
             }
        }
 
        stage('Build') {
             timeout(time: 30, unit: "MINUTES") {
-                def cmd = "echo build"
+                def cmd = "echo build  ${svtype}, ${env}, ${repos}, ${branch}"
                 sh cmd
             }
        }
 
        stage('Deploy&Monitor') {
             timeout(time: 10, unit: "MINUTES") {
-                def cmd = "echo deploy"
+                def cmd = "echo deploy  ${svtype}, ${env}, ${repos}, ${branch}"
                 sh cmd
        }
    }
 
        stage('Check&Detail') {
             timeout(time: 10, unit: "MINUTES") {
-                def cmd = "echo check"
+                def cmd = "echo check  ${svtype}, ${env}, ${repos}, ${branch}"
                 sh cmd
             }
        }

@@ -167,7 +167,7 @@ node {
             parameters: [
                 choice(
                     name: "name",
-                    choices: ["py2", "py3", "node", "go"],
+                    choices: service_map.keySet().collect().join("\n"),
                     description: "service repos\n"
                 )
             ]

@@ -5,71 +5,87 @@ env = ''
 branch = ''
 repos = ''
 userInput=''
-env=''
+feature=''
+expire=5
 g_deploy_state = 0
 
 mai_py2_svtype_list = """
+search
+company_match
+finance
 ge
+gossip_algo
+headline_dbg
+headline_rec
 qr
+saab
 sug
+usertag
 web
 webreg
-usertag
-saab
-finance
-gossip_algo
-headline_rec
-headline_dbg
-company_match
 """
 
 mai_svtype_list = """
-ads
-qr
-im
-file
 account
-gcs_agent
-gcs
-pbs
-userprofile
-pay
-maicoin
-jobs
-member
-feed
-gossip
-headline
-enterprise
-company
-sprofile
-sug
-growth
-growth_api
-network
-creative
-finance
-experience
+ads
+aigc
 api
-touch
+billionaire
 censor
 censor_admin
-polaris_admin
-billionaire
+company
+creative
+enterprise
+experience
+feed
+file
+finance
+gcs
+gcs_agent
+gossip
+growth
+growth_api
+headline
+im
+jobs
+jarvis
+maicoin
+member
+network
 pastor
+pay
+pbs
+polaris_admin
+qr
+sprofile
+sug
+touch
+userprofile
 """
 
 node_map = [
     '主 node [node_main]': 'node_main',
-    '实名 node [node_content]': 'node_content',
+    'pn node [node_profile]': 'node_profile',
     '招聘 node [node_jobs]': 'node_jobs',
     '招聘 node [node_bizjobs]': 'node_bizjobs',
-    '客服 node [node_cs]': 'node_cs',
-    '配置中心 node [node_dash]': 'node_dash',
-    'pn node [node_profile]': 'node_profile',
-    '人才银行 node [enterprise_fe]': 'enterprise_fe',
     '增长 node [node_growth]': 'node_growth',
     '会员 node [node_bizmember]': 'node_bizmember',
+    '实名 node [node_content]': 'node_content',
+    '触达平台 [node_preacher]': 'node_preacher',
+    '脉芽平台 [maiya_fe]': 'maiya_fe',
+    '脉芽h5 [maiya_next_h5]': 'maiya_next_h5',
+    'billionaire 后台 [billionaire 后台]': 'node_billionaire',
+    '客服 node [node_cs]': 'node_cs',
+    '配置中心 node [node_dash]': 'node_dash',
+    '人才银行 && 企业号 [enterprise_fe]': 'enterprise_fe',
+    'node_business_content': 'node_business_content',
+    'node_business_ad': 'node_business_ad',
+    'node_business_job': 'node_business_job',
+    'node_business_online': 'node_business_online',
+    'node_business_pn': 'node_business_pn',
+    'node_business_growth': 'node_business_growth',
+    'node_business_platform': 'node_business_platform',
+    'node_business_member': 'node_business_member',
 ]
 
 maigo_svtype_list = """go_org_orgserver
@@ -81,6 +97,29 @@ go_gossip_tagging
 go_jesus
 go_pbs
 go_im
+go_growth
+go_search
+go_search_front
+go_recall_talent
+go_recall_feed
+go_recall_gossip
+go_recall_topic
+go_recall_theme
+go_recall_headline
+go_recall_job
+go_recall_network
+go_recall_company
+go_jobs_talent_search
+go_interests
+go_group_cache
+go_profile_dc
+go_edison
+go_jinx
+go_yatsen
+go_jobs_job_index_adapter
+go_aml_predictmgr
+go_aml_predict
+go_aml_predictdc
 
 """
 
@@ -98,6 +137,10 @@ service_map = [
     'go': maigo_svtype_list
 ]
 
+packers="""10.16.0.16
+10.16.0.12
+"""
+
 group_name_list="""无
 jobs
 pn
@@ -106,6 +149,16 @@ platform
 growth
 """
 
+
+// 默认使用goc build
+def gocDefaultService = [
+'go_search', 'go_search_front', 'go_im',
+'go_recall_company' ,'go_recall_feed' ,'go_recall_gossip' ,
+'go_recall_headline' ,'go_recall_job' ,'go_recall_talent' ,
+'go_recall_network', 'go_recall_topic','go_recall_job',
+'go_recall_theme', 'go_recall_headline',
+'go_gossip_darwin', 'go_jinx', 'go_edison'
+]
 
 node {
    try {
@@ -125,29 +178,60 @@ node {
                 service_list = service_map[repos]
             }
 
-            userInput = input id: "input deploy params", message: "请填写部署信息",
-            parameters: [
-                string(name: "env", defaultValue: "", description: "流量标签名称，用于流量特定转发，格式：[a-z0-9]([-a-z0-9]*[a-z0-9])?（不要用下划线和大写字母哈）"),
-                choice(
-                    name: "name",
-                    choices: service_list,
-                    description: "service name"
-                ),
-                string(name: "branch", defaultValue: "feature branch/commit", description: "分支名称或者 commit id"),
-            ]
+            if ( repos == "go") {
+                // 首先获取用户输入的基本参数
+                userInput = input id: "input deploy params", message: "请填写部署信息",
+                parameters: [
+                    string(name: "feature", defaultValue: "", description: "流量标签名称，用于流量特定转发，格式要求：仅字符和数字"),
+                    choice(name: "name", choices: service_list, description: "service name"),
+                    string(name: "branch", defaultValue: "", description: "分支名称(master 分支需要填写具体/完整的 commit)"),
+                    string(name: "expire", defaultValue: "5", description: "旁路环境过期自动清除，默认5天过期，最长可设置为15天"),
+                    choice(name: "packer", choices: packers, description: "镜像打包机器10.16.0.16、10.16.0.12，默认优先使用前者"),
+                    booleanParam(name: 'goc', defaultValue: false, description: "是否需要收集覆盖率数据"),
+//                     booleanParam(name: 'use_cache', defaultValue: true, description: "是否使用缓存打镜像 ")
+                ]
+
+                // 根据选择的服务名称动态更新 goc 的值
+//                 if (userInput.name in gocDefaultService) {
+//                     userInput.goc = true
+//                 } else {
+//                     userInput.goc = false
+//                 }
+            } else {
+                userInput = input id: "input deploy params", message: "请填写部署信息",
+                parameters: [
+                    string(name: "feature", defaultValue: "", description: "流量标签名称，用于流量特定转发，格式要求：仅字符和数字"),
+                    choice(name: "name", choices: service_list, description: "service name"),
+                    string(name: "branch", defaultValue: "", description: "分支名称(master 分支需要填写具体/完整的 commit)"),
+                    string(name: "expire", defaultValue: "5", description: "旁路环境过期自动清除，默认5天过期，最长可设置为15天"),
+                    choice(name: "packer", choices: packers, description: "镜像打包机器 10.16.0.16、10.16.0.12，默认优先使用前者"),
+                ]
+                userInput.goc=false
+//                 userInput.use_cache=true
+            }
+
 
             svtype = userInput.name
             if ( repos == "node") {
                 svtype = node_map[userInput.name]
             }
 
-            env = userInput.env
+            gocparam=""
+            feature = userInput.feature
             branch = userInput.branch
+            expire = userInput.expire
+            packer_kvm = userInput.packer
+            goc = userInput.goc
 
-            if (branch == "" || env == ""){
+            if (goc == true){
+                gocparam="-c ${goc}"
+            }
+
+            if (branch == "" || feature == ""){
                 print "参数错误"
             }
        }
+       currentBuild.description = "${repos} 服务：${svtype} \n标签：${feature} \n分支：${branch}\n过期时间：${expire}"
        println userInput
    } catch (exc) {
        println exc
@@ -158,47 +242,42 @@ node {
    try {
        stage('Pre Deploy') {
             timeout(time: 1, unit: "MINUTES") {
-                def cmd = "echo pre deloy, ${svtype}, ${env}, ${repos}, ${branch}"
-                sh cmd
+                def cmd = "echo pre deploy -s ${svtype} -n dev-env -f ${feature} -t ${repos} -b ${branch} -x ${expire} -k pre_deploy "
+                ssh cmd
             }
        }
 
-       stage('Build') {
-            timeout(time: 30, unit: "MINUTES") {
-                def cmd = "echo build  ${svtype}, ${env}, ${repos}, ${branch}"
-                sh cmd
+       stage('Build&&Deploy') {
+            timeout(time: 60, unit: "MINUTES") {
+                def cmd = "echo build -s ${svtype} -n dev-env -f ${feature} -t ${repos} -b ${branch} -x ${expire} -k deploy -e DEV ${gocparam} -p ${packer_kvm}"
+                ssh cmd
             }
        }
 
-       stage('Deploy&Monitor') {
+       stage('Check && Detail') {
             timeout(time: 10, unit: "MINUTES") {
-                def cmd = "echo deploy  ${svtype}, ${env}, ${repos}, ${branch}"
-                sh cmd
-       }
-   }
-
-       stage('Check&Detail') {
-            timeout(time: 10, unit: "MINUTES") {
-                def cmd = "echo check  ${svtype}, ${env}, ${repos}, ${branch}"
-                sh cmd
+                def cmd = "echo check ${svtype}  ${feature} -t ${repos} -b ${branch} -x ${expire} -k check"
+                ssh cmd
             }
        }
+       currentBuild.result = "SUCCESS"
    } catch (exc) {
        println exc
-       g_deploy_state = 1
+//        g_deploy_state = 1
+       currentBuild.result = "FAILURE"
    }
 
-   stage('Post Deploy') {
-        switch (g_deploy_state) {
-            case 0:
-                currentBuild.result = "SUCCESS"
-                break;
-            case 1:
-                currentBuild.result = "FAILURE"
-                break;
-            default:
-                currentBuild.result = "FAILURE"
-        }
-   }
+//    stage('Post Deploy') {
+//         switch (g_deploy_state) {
+//             case 0:
+//                 currentBuild.result = "SUCCESS"
+//                 break;
+//             case 1:
+//                 currentBuild.result = "FAILURE"
+//                 break;
+//             default:
+//                 currentBuild.result = "FAILURE"
+//         }
+//    }
 }
 

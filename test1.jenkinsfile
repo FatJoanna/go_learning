@@ -1,0 +1,10 @@
+pipeline {
+    agent any
+    stages {
+        stage('Input') {
+            steps {
+                input(id: 'CONFIRM', message: 'Please confirm', parameters: [booleanParam(name: 'CONFIRMED', defaultValue: false, description: 'Confirm the action')])
+            }
+        }
+    }
+}

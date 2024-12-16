@@ -242,22 +242,22 @@ node {
    try {
        stage('Pre Deploy') {
             timeout(time: 10, unit: "MINUTES") {
-                def cmd = "echo pre deploy -s ${svtype} -n dev-env -f ${feature} -t ${repos} -b ${branch} -x ${expire} -k pre_deploy "
-                def ssh = { cmd -> sh "${cmd}" }
+                def cmd1 = "echo pre deploy -s ${svtype} -n dev-env -f ${feature} -t ${repos} -b ${branch} -x ${expire} -k pre_deploy "
+                def ssh1 = { cmd1 -> sh "${cmd1}" }
             }
        }
 
        stage('Build&&Deploy') {
             timeout(time: 60, unit: "MINUTES") {
-                def cmd = "echo build -s ${svtype} -n dev-env -f ${feature} -t ${repos} -b ${branch} -x ${expire} -k deploy -e DEV ${gocparam} -p ${packer_kvm}"
-                def ssh = { cmd -> sh "${cmd}" }
+                def cmd2 = "echo build -s ${svtype} -n dev-env -f ${feature} -t ${repos} -b ${branch} -x ${expire} -k deploy -e DEV ${gocparam} -p ${packer_kvm}"
+                def ssh2 = { cmd2 -> sh "${cmd2}" }
             }
        }
 
        stage('Check && Detail') {
             timeout(time: 10, unit: "MINUTES") {
-                def cmd = "echo check ${svtype}  ${feature} -t ${repos} -b ${branch} -x ${expire} -k check"
-                def ssh = { cmd -> sh "${cmd}" }
+                def cmd3 = "echo check ${svtype}  ${feature} -t ${repos} -b ${branch} -x ${expire} -k check"
+                def ssh3 = { cmd3 -> sh "${cmd3}" }
             }
        }
        currentBuild.result = "SUCCESS"
